@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>進捗共有</title>
+<style>
+  :root{
+    --bg:#f6f5f1; --surface:#fff; --ink:#252420; --ink2:#5e5d55; --ink3:#8d8c82; --line:rgba(0,0,0,.12);
+    --accent:#2f6fb0; --on-accent:#fff; --danger:#b4553f; --ok:#2f7d4a;
+    --mark-o:#2f7d4a; --mark-t:#b06d12; --mark-x:#b4553f; --upd:#fde7c4;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#191816; --surface:#242320; --ink:#ece9e2; --ink2:#a7a59c; --ink3:#767469; --line:rgba(255,255,255,.14);
+      --accent:#6ba6df; --on-accent:#10222f; --danger:#e08b76; --ok:#77b56f; --mark-o:#77b56f; --mark-t:#d79a3c; --mark-x:#e08b76; --upd:#4a3a1c;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:16px}
+  h1{font-size:19px;margin:0}
+  .muted{color:var(--ink3);font-size:12px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .login{max-width:380px;margin:12vh auto}
+  .login h1{margin-bottom:6px}
+  label.f{display:block;font-size:12px;color:var(--ink2);margin:12px 0 4px}
+  input,select,textarea,button{font:inherit;color:inherit}
+  input[type=text],input[type=password],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .chk{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:12px}
+  .chk input{width:auto}
+  .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--ink3)}
+  .btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .err{color:var(--danger);font-size:13px;margin-top:10px;min-height:1.4em}
+  header.top{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  header.top .sp{flex:1}
+  .tools{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .tools input[type=search]{max-width:260px}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--ink2);margin-left:auto}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:900px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:center;white-space:nowrap}
+  th{position:sticky;top:0;z-index:1;color:#222;font-weight:700;cursor:pointer;user-select:none}
+  td.l{text-align:left}
+  td.memo{text-align:left;white-space:normal;min-width:160px}
+  tr.upd td:first-child{box-shadow:inset 4px 0 0 #e0a030}
+  td.act{width:1%}
+  .m-o{color:var(--mark-o);font-weight:700}.m-t{color:var(--mark-t);font-weight:700}.m-x{color:var(--mark-x);font-weight:700}
+  .tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:10px;background:var(--upd);margin-left:6px;vertical-align:1px}
+  .empty{padding:28px;text-align:center;color:var(--ink3)}
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:20px;width:min(560px,94vw)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  dialog h2{margin:0 0 4px;font-size:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .grid .full{grid-column:1/-1}
+  .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13px;max-width:92vw;z-index:50}
+  .upl{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .upl ul{margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--ink2)}
+  [hidden]{display:none!important}
+  @media (max-width:720px){
+    .grid{grid-template-columns:1fr}
+    .tablewrap{border:none;background:none}
+    table,thead,tbody,tr,td{display:block;min-width:0;width:100%}
+    thead{display:none}
+    tr{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:6px 10px}
+    td{border:none;border-bottom:1px solid var(--line);text-align:right!important;white-space:normal;padding:6px 0;display:flex;justify-content:space-between;gap:10px}
+    td:last-child{border-bottom:none}
+    td::before{content:attr(data-l);color:var(--ink3);font-size:12px;text-align:left;flex:none}
+    td.act{width:100%}
+    .legend{margin-left:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ログイン -->
+  <section id="login" class="login card" hidden>
+    <h1 id="loginTitle">進捗共有</h1>
+    <div class="muted">パスワードを入力してください</div>
+    <form id="loginForm" autocomplete="off">
+      <label class="f" for="pw">パスワード</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <label class="chk"><input id="remember" type="checkbox"> このブラウザでは次回から入力しない（30日間）</label>
+      <div class="muted" style="margin-top:4px">※共用のパソコンではチェックしないでください</div>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="loginBtn" type="submit">開く</button></div>
+      <div class="err" id="loginErr" role="alert"></div>
+    </form>
+  </section>
+
+  <!-- 一覧 -->
+  <section id="main" hidden>
+    <header class="top">
+      <div><h1 id="title"></h1><div class="muted" id="updated"></div></div>
+      <div class="sp"></div>
+      <button class="btn" id="logout" type="button" title="このブラウザに保存した情報を消します">ログアウト</button>
+    </header>
+    <div class="tools">
+      <input id="q" type="search" placeholder="物件名などで絞り込み">
+      <button class="btn primary" id="add" type="button">＋ 物件を追加</button>
+      <span class="muted" id="count"></span>
+      <div class="legend"><span><i style="background:#f4c7c3"></i>お客様が入力</span><span><i style="background:#fbe58c"></i>弊社が入力</span></div>
+    </div>
+    <div class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+    <div class="empty" id="empty" hidden>表示できる物件がまだありません。「＋ 物件を追加」から入力してください。</div>
+    <p class="muted" style="margin-top:12px">金額などの詳細は担当者へお問い合わせください。入力した内容は、反映まで1分ほどかかることがあります。</p>
+  </section>
+</div>
+
+<!-- 入力ダイアログ -->
+<dialog id="dlg">
+  <h2 id="dlgTitle">物件の入力</h2>
+  <div class="muted" id="dlgSub"></div>
+  <form id="form" autocomplete="off"><div class="grid" id="fields"></div>
+    <div class="err" id="formErr" role="alert"></div>
+    <div class="upl" id="upl" hidden>
+      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span>
+      <div class="row" style="margin-top:6px"><input id="file" type="file" accept="application/pdf,image/png,image/jpeg,.zip" multiple style="max-width:300px"><button class="btn" id="uploadBtn" type="button">アップロード</button></div>
+      <ul id="uploaded"></ul>
+    </div>
+    <div class="foot"><button class="btn" id="cancel" type="button">閉じる</button><button class="btn primary" id="save" type="submit">保存</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEYNAME = new URLSearchParams(location.search).get("c") || "";
+  var DAYS30 = 30*24*3600*1000;
+  var $ = function(id){ return document.getElementById(id); };
+  var enc = null, data = null, session = null; // session = {k: 鍵(hex), wt: 書込トークン(hex)}
+  var sortCol = null, sortDir = 1, editing = null;
+
+  // ---------- 変換 ----------
+  var hex2buf = function(h){ var a = new Uint8Array(h.length/2); for(var i=0;i<a.length;i++) a[i]=parseInt(h.substr(2*i,2),16); return a; };
+  var buf2hex = function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return (x<16?"0":"")+x.toString(16); }).join(""); };
+  var b642buf = function(s){ var bin = atob(s), a = new Uint8Array(bin.length); for(var i=0;i<a.length;i++) a[i]=bin.charCodeAt(i); return a; };
+  var subtle = window.crypto && window.crypto.subtle;
+  var esc = function(s){ return String(s==null?"":s); };
+  function toast(msg, ms){ var t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ t.hidden=true; }, ms||4500); }
+
+  // ---------- 暗号（ブラウザ標準のWebCrypto） ----------
+  async function deriveKeyHex(password){
+    var base = await subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+    var bits = await subtle.deriveBits({name:"PBKDF2", salt:hex2buf(enc.salt), iterations:enc.iter, hash:"SHA-256"}, base, 256);
+    return buf2hex(bits);
+  }
+  async function writeToken(keyHex){
+    var hk = await subtle.importKey("raw", hex2buf(keyHex), {name:"HMAC", hash:"SHA-256"}, false, ["sign"]);
+    return buf2hex(await subtle.sign("HMAC", hk, new TextEncoder().encode("share-board-write-v1")));
+  }
+  async function decryptWith(keyHex){
+    var k = await subtle.importKey("raw", hex2buf(keyHex), {name:"AES-GCM"}, false, ["decrypt"]);
+    var plain = await subtle.decrypt({name:"AES-GCM", iv:b642buf(enc.iv)}, k, b642buf(enc.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  // ---------- 記憶（パスワードそのものは保存しない。復号用の鍵と書込トークンだけを30日） ----------
+  var store = {
+    get: function(){ try{ var v = JSON.parse(localStorage.getItem("sb:"+KEYNAME)||"null"); if(v && v.exp>Date.now()) return v; }catch(e){} return null; },
+    set: function(k, wt){ try{ localStorage.setItem("sb:"+KEYNAME, JSON.stringify({k:k, wt:wt, exp:Date.now()+DAYS30})); }catch(e){} },
+    clear: function(){ try{ localStorage.removeItem("sb:"+KEYNAME); }catch(e){} }
+  };
+
+  // ---------- 起動 ----------
+  async function boot(){
+    if(!subtle){ $("login").hidden=false; $("loginErr").textContent="このブラウザでは安全な通信(https)が必要です。"; return; }
+    if(!/^[a-z0-9-]{2,40}$/.test(KEYNAME)){ $("login").hidden=false; $("loginTitle").textContent="URLが正しくありません"; $("loginForm").hidden=true; return; }
+    try{
+      var r = await fetch("c/"+KEYNAME+"/data.json?t="+Date.now(), {cache:"no-store"});
+      if(!r.ok) throw new Error(r.status);
+      enc = await r.json();
+    }catch(e){ $("login").hidden=false; $("loginTitle").textContent="準備中です"; $("loginForm").hidden=true; return; }
+    var saved = store.get();
+    if(saved){
+      try{ data = await decryptWith(saved.k); session = {k:saved.k, wt:saved.wt}; show(); return; }
+      catch(e){ store.clear(); }   // パスワードが変わった等
+    }
+    $("login").hidden=false; $("pw").focus();
+  }
+
+  $("loginForm").addEventListener("submit", async function(e){
+    e.preventDefault(); $("loginErr").textContent=""; $("loginBtn").disabled=true; $("loginBtn").textContent="確認中…";
+    try{
+      var k = await deriveKeyHex($("pw").value);
+      data = await decryptWith(k);                     // 間違っていれば失敗する
+      var wt = await writeToken(k); session = {k:k, wt:wt};
+      if($("remember").checked) store.set(k, wt);
+      $("pw").value = ""; show();
+    }catch(err){ $("loginErr").textContent = "パスワードが違います。"; }
+    $("loginBtn").disabled=false; $("loginBtn").textContent="開く";
+  });
+  $("logout").addEventListener("click", function(){ store.clear(); data=null; session=null; $("main").hidden=true; $("login").hidden=false; $("pw").focus(); });
+
+  // ---------- 表示 ----------
+  function fmtDate(v){ return v ? v.replace(/-/g,"/") : ""; }
+  function fmtCell(col, v){
+    if(v==="" || v==null) return "";
+    if(col.t==="date") return fmtDate(v);
+    if(col.t==="num") return Number(v).toLocaleString("ja-JP");
+    return String(v);
+  }
+  function show(){
+    $("login").hidden=true; $("main").hidden=false;
+    document.title = data.title + " | 進捗共有";
+    $("title").textContent = data.title;
+    $("updated").textContent = data.updated ? "最終更新 " + data.updated.replace("T"," ").slice(0,16) : "";
+    var tr = document.createElement("tr");
+    data.columns.forEach(function(c, i){
+      var th = document.createElement("th"); th.style.background = c.c; th.textContent = c.n;
+      th.title = "クリックで並べ替え"; th.addEventListener("click", function(){ sortDir = (sortCol===i) ? -sortDir : 1; sortCol = i; render(); });
+      tr.appendChild(th);
+    });
+    var ta = document.createElement("th"); ta.textContent = ""; ta.style.cursor = "default"; tr.appendChild(ta);
+    $("thead").textContent = ""; $("thead").appendChild(tr);
+    render();
+  }
+  function render(){
+    var kw = $("q").value.trim().toLowerCase(), rows = data.rows.slice();
+    if(kw) rows = rows.filter(function(r){ return Object.keys(r.v).some(function(k){ return String(r.v[k]).toLowerCase().indexOf(kw)>=0; }); });
+    if(sortCol!=null){ var cl = data.columns[sortCol].l; rows.sort(function(a,b){ var x=a.v[cl], y=b.v[cl]; if(data.columns[sortCol].t==="num"){ x=Number(x)||0; y=Number(y)||0; } return (x<y?-1:x>y?1:0)*sortDir; }); }
+    var tb = $("tbody"); tb.textContent = "";
+    rows.forEach(function(r){
+      var tr = document.createElement("tr"); if(r.upd) tr.className = "upd";
+      data.columns.forEach(function(c, i){
+        var td = document.createElement("td"), v = r.v[c.l];
+        td.dataset.l = c.n;
+        if(i===0){ td.className = "l"; td.textContent = fmtCell(c, v); if(r.upd){ var g=document.createElement("span"); g.className="tag"; g.textContent="更新"; td.appendChild(g);} }
+        else if(c.t==="mark"){ td.textContent = v; td.className = v==="○"||v==="◎" ? "m-o" : v==="△" ? "m-t" : v==="×" ? "m-x" : ""; }
+        else if(c.l==="メモ"){ td.className = "memo"; td.textContent = v; }
+        else td.textContent = fmtCell(c, v);
+        tr.appendChild(td);
+      });
+      var ta = document.createElement("td"); ta.className = "act";
+      var b = document.createElement("button"); b.className = "btn"; b.type="button";
+      if(r.lock){ b.textContent = "確定済"; b.disabled = true; b.title = "契約済のため編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
+      ta.appendChild(b); tr.appendChild(ta); tb.appendChild(tr);
+    });
+    $("count").textContent = rows.length + "件";
+    $("empty").hidden = rows.length > 0;
+    $("thead").parentNode.hidden = rows.length === 0 && !kw && data.rows.length === 0;
+  }
+  $("q").addEventListener("input", render);
+
+  // ---------- 入力フォーム ----------
+  function editableCols(){ return data.columns.filter(function(c){ return c.by==="先方"; }); }
+  function openForm(row){
+    editing = row || null; $("formErr").textContent = "";
+    $("dlgTitle").textContent = row ? "物件の編集" : "物件を追加";
+    $("dlgSub").textContent = row ? "変更したい項目だけ直して「保存」を押してください。" : "分かる範囲で入力してください。あとから編集できます。";
+    var g = $("fields"); g.textContent = "";
+    editableCols().forEach(function(c){
+      var wrap = document.createElement("div"); if(c.l==="物件名"||c.l==="住所") wrap.className = "full";
+      var lb = document.createElement("label"); lb.className = "f"; lb.textContent = c.n + (c.l==="物件名" ? "（必須）" : ""); lb.htmlFor = "f_"+c.l;
+      var inp;
+      if(c.t==="mark"){ inp = document.createElement("select"); ["", "○", "△", "×"].forEach(function(o){ var op=document.createElement("option"); op.value=o; op.textContent=o||"（未選択）"; inp.appendChild(op); }); }
+      else { inp = document.createElement("input"); inp.type = c.t==="date" ? "date" : c.t==="num" ? "number" : "text"; if(c.t==="num"){ inp.min=0; inp.max=9999; inp.step=1; } inp.maxLength = 200; }
+      inp.id = "f_"+c.l; inp.dataset.label = c.l; inp.value = row ? (row.v[c.l]||"") : "";
+      wrap.appendChild(lb); wrap.appendChild(inp); g.appendChild(wrap);
+    });
+    $("upl").hidden = !row; $("uploaded").textContent = "";
+    $("save").textContent = "保存"; $("save").disabled = false;
+    $("dlg").showModal();
+  }
+  $("add").addEventListener("click", function(){ openForm(null); });
+  $("cancel").addEventListener("click", function(){ $("dlg").close(); });
+
+  async function callApi(body){
+    if(!data.api) throw {code:"no_api"};
+    body.key = data.key; body.token = session.wt;
+    var r = await fetch(data.api, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
+    var j = await r.json();
+    if(!j.ok){ var e = new Error(j.error); e.code = j.error; e.detail = j.detail; e.recordId = j.recordId; throw e; }
+    return j;
+  }
+  function errText(e){
+    var m = {auth:"認証に失敗しました。いったんログアウトして、もう一度パスワードを入力してください。", locked:"認証に失敗した回数が多いため、しばらく入力できません。時間をおいてお試しください。",
+      locked_record:"この物件は確定済のため編集できません。", stopped:"現在この共有は停止中です。", not_found:"物件が見つかりません。画面を読み込み直してください。",
+      forbidden_field:"この項目は入力できません。", too_large:"ファイルが大きすぎます(20MBまで)。", no_folder:"図面の保存先が未設定です。担当者へご連絡ください。", no_api:"送信先が設定されていません。担当者へご連絡ください。"};
+    if(e.code==="invalid") return e.detail || "入力内容を確認してください。";
+    return m[e.code] || "送信できませんでした。通信状況を確認して、もう一度お試しください。";
+  }
+  $("form").addEventListener("submit", async function(ev){
+    ev.preventDefault(); $("formErr").textContent = "";
+    var fields = {};
+    document.querySelectorAll("#fields [data-label]").forEach(function(el){
+      var cur = editing ? (editing.v[el.dataset.label]||"") : "";
+      if(editing && String(el.value)===String(cur)) return;      // 変えていない項目は送らない
+      if(!editing && el.value==="") return;
+      fields[el.dataset.label] = el.value;
+    });
+    if(editing && !Object.keys(fields).length){ $("dlg").close(); return; }
+    $("save").disabled = true; $("save").textContent = "保存中…";
+    try{
+      var res;
+      try{ res = await callApi({action:"save", recordId: editing ? editing.id : undefined, fields:fields}); }
+      catch(e){
+        if(e.code==="duplicate" && confirm("同じ名前の物件がすでにあります。別の物件として追加しますか？\n（すでにある物件を直す場合は「キャンセル」して、一覧の「編集」から変更してください）"))
+          res = await callApi({action:"save", fields:fields, allowDuplicate:true});
+        else throw e;
+      }
+      // 画面に先に反映（本反映は1分ほどあと）
+      if(editing){ Object.keys(fields).forEach(function(l){ editing.v[l] = fields[l]; }); }
+      else { var v = {}; data.columns.forEach(function(c){ v[c.l] = fields[c.l] || ""; }); editing = {id:res.recordId, st:"先方入力・未対応", upd:false, lock:false, v:v}; data.rows.push(editing); }
+      render();
+      $("upl").hidden = false; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = "続けて図面を添付できます。不要なら「閉じる」を押してください。";
+      $("save").textContent = "保存"; $("save").disabled = false; toast("保存しました。担当者へ通知しました。");
+    }catch(e){
+      if(e.code==="auth"){ store.clear(); }
+      $("formErr").textContent = errText(e); $("save").textContent = "保存"; $("save").disabled = false;
+    }
+  });
+
+  // ---------- 図面アップロード ----------
+  function fileToB64(f){ return new Promise(function(res, rej){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result).split(",")[1]); }; fr.onerror = rej; fr.readAsDataURL(f); }); }
+  $("uploadBtn").addEventListener("click", async function(){
+    var files = Array.prototype.slice.call($("file").files); if(!files.length || !editing) return;
+    $("uploadBtn").disabled = true; $("formErr").textContent = "";
+    for(var i=0;i<files.length;i++){
+      var f = files[i], li = document.createElement("li"); li.textContent = f.name + "（送信中…）"; $("uploaded").appendChild(li);
+      try{
+        if(f.size > 20*1024*1024) throw {code:"too_large"};
+        await callApi({action:"upload", recordId:editing.id, fileName:f.name, mime:f.type || "application/octet-stream", dataBase64: await fileToB64(f)});
+        li.textContent = f.name + "（完了）"; if(editing.v["図面共有"]!==undefined && !editing.v["図面共有"]) editing.v["図面共有"] = "○";
+      }catch(e){ li.textContent = f.name + "（失敗：" + errText(e) + "）"; }
+    }
+    $("file").value = ""; $("uploadBtn").disabled = false; render();
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
