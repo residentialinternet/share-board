@@ -70,6 +70,7 @@
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13px;max-width:92vw;z-index:50}
   .upl{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
   .upl ul{margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--ink2)}
+  @media (min-width:721px){.tablewrap{max-height:calc(100vh - 210px)}}
   [hidden]{display:none!important}
   @media (max-width:720px){
     .grid{grid-template-columns:1fr}
@@ -345,7 +346,7 @@
       try{
         if(f.size > 20*1024*1024) throw {code:"too_large"};
         await callApi({action:"upload", recordId:editing.id, fileName:f.name, mime:f.type || "application/octet-stream", dataBase64: await fileToB64(f)});
-        li.textContent = f.name + "（完了）"; if(editing.v["図面共有"]!==undefined && !editing.v["図面共有"]) editing.v["図面共有"] = "○";
+        li.textContent = f.name + "（完了）"; if(editing.v["図面共有"]!==undefined && !editing.v["図面共有"]) editing.v["図面共有"] = "済";
       }catch(e){ li.textContent = f.name + "（失敗：" + errText(e) + "）"; }
     }
     $("file").value = ""; $("uploadBtn").disabled = false; render();
