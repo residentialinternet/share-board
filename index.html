@@ -130,8 +130,8 @@
   <form id="form" autocomplete="off"><div class="grid" id="fields"></div>
     <div class="err" id="formErr" role="alert"></div>
     <div class="upl" id="upl" hidden>
-      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span><div class="muted" id="uplNote" style="margin-top:2px">選んだファイルは「保存」と同時にアップロードされます。</div>
-      <div class="row" style="margin-top:6px"><input id="file" type="file" accept="application/pdf,image/png,image/jpeg,.zip" multiple style="max-width:300px"><button class="btn" id="uploadBtn" type="button">アップロード</button></div>
+      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span><div class="muted" id="uplNote" style="margin-top:2px">ファイルを選んで「保存」を押すと、入力内容と一緒に送られます。ファイルだけ先に送りたいときは「アップロード」を押してください（入力内容は保存されません）。</div>
+      <div class="row" style="margin-top:6px"><input id="file" type="file" accept="application/pdf,image/png,image/jpeg,.zip" multiple style="max-width:300px"><button class="btn" id="uploadBtn" type="button" title="入力内容は保存せず、ファイルだけを送ります">ファイルだけ送る</button></div>
       <ul id="uploaded"></ul>
     </div>
     <div class="foot"><button class="btn" id="cancel" type="button">閉じる</button><button class="btn primary" id="save" type="submit">保存</button></div>
