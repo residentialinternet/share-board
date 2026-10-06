@@ -51,6 +51,11 @@
   td.memo{text-align:left;white-space:normal;min-width:160px}
   tr.upd td:first-child{box-shadow:inset 4px 0 0 #e0a030}
   td.act{width:1%}
+  th.act,td.act{position:sticky;left:0;background:var(--surface);z-index:2}
+  th.act{z-index:3}
+  tr.upd td.act{box-shadow:inset 4px 0 0 #e0a030}
+  tr.upd td:first-child:not(.act){box-shadow:none}
+  a.btn{display:inline-block;text-decoration:none;color:inherit}
   .m-o{color:var(--mark-o);font-weight:700}.m-t{color:var(--mark-t);font-weight:700}.m-x{color:var(--mark-x);font-weight:700}
   .tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:10px;background:var(--upd);margin-left:6px;vertical-align:1px}
   .empty{padding:28px;text-align:center;color:var(--ink3)}
@@ -106,6 +111,7 @@
       <input id="q" type="search" placeholder="物件名などで絞り込み">
       <button class="btn primary" id="add" type="button">＋ 物件を追加</button>
       <span class="muted" id="count"></span>
+      <a class="btn" id="boxBtn" href="#" target="_blank" rel="noopener noreferrer" hidden>📁 共有フォルダ</a>
       <div class="legend"><span><i style="background:#f4c7c3"></i>お客様が入力</span><span><i style="background:#fbe58c"></i>弊社が入力</span></div>
     </div>
     <div class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -219,7 +225,8 @@
       th.title = "クリックで並べ替え"; th.addEventListener("click", function(){ sortDir = (sortCol===i) ? -sortDir : 1; sortCol = i; render(); });
       tr.appendChild(th);
     });
-    var ta = document.createElement("th"); ta.textContent = ""; ta.style.cursor = "default"; tr.appendChild(ta);
+    var ta = document.createElement("th"); ta.className = "act"; ta.textContent = ""; ta.style.cursor = "default"; tr.insertBefore(ta, tr.firstChild);
+    var bx = $("boxBtn"); if(data.box && /^https?:\/\//i.test(data.box)){ bx.href = data.box; bx.hidden = false; } else { bx.hidden = true; }
     $("thead").textContent = ""; $("thead").appendChild(tr);
     render();
   }
@@ -230,6 +237,10 @@
     var tb = $("tbody"); tb.textContent = "";
     rows.forEach(function(r){
       var tr = document.createElement("tr"); if(r.upd) tr.className = "upd";
+      var ta = document.createElement("td"); ta.className = "act";
+      var b = document.createElement("button"); b.className = "btn"; b.type="button";
+      if(r.lock){ b.textContent = "停止中"; b.disabled = true; b.title = "この物件は編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
+      ta.appendChild(b); tr.appendChild(ta);
       data.columns.forEach(function(c, i){
         var td = document.createElement("td"), v = r.v[c.l];
         td.dataset.l = c.n;
@@ -239,10 +250,7 @@
         else td.textContent = fmtCell(c, v);
         tr.appendChild(td);
       });
-      var ta = document.createElement("td"); ta.className = "act";
-      var b = document.createElement("button"); b.className = "btn"; b.type="button";
-      if(r.lock){ b.textContent = "確定済"; b.disabled = true; b.title = "契約済のため編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
-      ta.appendChild(b); tr.appendChild(ta); tb.appendChild(tr);
+      tb.appendChild(tr);
     });
     $("count").textContent = rows.length + "件";
     $("empty").hidden = rows.length > 0;
