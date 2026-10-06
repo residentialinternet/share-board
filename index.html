@@ -277,7 +277,8 @@
     if(!data.api) throw {code:"no_api"};
     body.key = data.key; body.token = session.wt;
     var r = await fetch(data.api, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
-    var j = await r.json();
+    var txt = await r.text(), j;
+    try{ j = JSON.parse(txt); }catch(pe){ console.error("api: JSONではない応答", r.status, txt.slice(0,300)); throw pe; }
     if(!j.ok){ var e = new Error(j.error); e.code = j.error; e.detail = j.detail; e.recordId = j.recordId; throw e; }
     return j;
   }
@@ -286,7 +287,7 @@
       locked_record:"この物件は確定済のため編集できません。", stopped:"現在この共有は停止中です。", not_found:"物件が見つかりません。画面を読み込み直してください。",
       forbidden_field:"この項目は入力できません。", too_large:"ファイルが大きすぎます(20MBまで)。", no_folder:"図面の保存先が未設定です。担当者へご連絡ください。", no_api:"送信先が設定されていません。担当者へご連絡ください。"};
     if(e.code==="invalid") return e.detail || "入力内容を確認してください。";
-    return m[e.code] || "送信できませんでした。通信状況を確認して、もう一度お試しください。";
+    return m[e.code] || "応答を確認できませんでした。保存されている場合があります。画面を読み込み直して、一覧に出ているか確認してください（出ていなければ、もう一度保存してください）。";
   }
   $("form").addEventListener("submit", async function(ev){
     ev.preventDefault(); $("formErr").textContent = "";
@@ -314,6 +315,7 @@
       $("upl").hidden = false; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = "続けて図面を添付できます。不要なら「閉じる」を押してください。";
       $("save").textContent = "保存"; $("save").disabled = false; toast("保存しました。担当者へ通知しました。");
     }catch(e){
+      console.error("save error", e);
       if(e.code==="auth"){ store.clear(); }
       $("formErr").textContent = errText(e); $("save").textContent = "保存"; $("save").disabled = false;
     }
