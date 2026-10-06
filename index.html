@@ -121,7 +121,7 @@
   <form id="form" autocomplete="off"><div class="grid" id="fields"></div>
     <div class="err" id="formErr" role="alert"></div>
     <div class="upl" id="upl" hidden>
-      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span>
+      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span><div class="muted" id="uplNote" style="margin-top:2px">選んだファイルは「保存」と同時にアップロードされます。</div>
       <div class="row" style="margin-top:6px"><input id="file" type="file" accept="application/pdf,image/png,image/jpeg,.zip" multiple style="max-width:300px"><button class="btn" id="uploadBtn" type="button">アップロード</button></div>
       <ul id="uploaded"></ul>
     </div>
@@ -266,7 +266,7 @@
       inp.id = "f_"+c.l; inp.dataset.label = c.l; inp.value = row ? (row.v[c.l]||"") : "";
       wrap.appendChild(lb); wrap.appendChild(inp); g.appendChild(wrap);
     });
-    $("upl").hidden = !row; $("uploaded").textContent = "";
+    $("upl").hidden = false; $("uploaded").textContent = ""; $("file").value = ""; $("uploadBtn").hidden = !row; $("uplNote").hidden = false;
     $("save").textContent = "保存"; $("save").disabled = false;
     $("dlg").showModal();
   }
@@ -298,7 +298,10 @@
       if(!editing && el.value==="") return;
       fields[el.dataset.label] = el.value;
     });
-    if(editing && !Object.keys(fields).length){ $("dlg").close(); return; }
+    if(editing && !Object.keys(fields).length){
+      if($("file").files.length){ $("save").disabled = true; $("save").textContent = "送信中…"; await uploadSelected(); $("save").disabled = false; $("save").textContent = "保存"; render(); return; }
+      $("dlg").close(); return;
+    }
     $("save").disabled = true; $("save").textContent = "保存中…";
     try{
       var res;
@@ -312,7 +315,8 @@
       if(editing){ Object.keys(fields).forEach(function(l){ editing.v[l] = fields[l]; }); }
       else { var v = {}; data.columns.forEach(function(c){ v[c.l] = fields[c.l] || ""; }); editing = {id:res.recordId, st:"先方入力・未対応", upd:false, lock:false, v:v}; data.rows.push(editing); }
       render();
-      $("upl").hidden = false; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = "続けて図面を添付できます。不要なら「閉じる」を押してください。";
+      $("upl").hidden = false; $("uploadBtn").hidden = false; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = "続けて図面を添付できます。不要なら「閉じる」を押してください。";
+      if($("file").files.length){ $("save").textContent = "図面を送信中…"; await uploadSelected(); }
       $("save").textContent = "保存"; $("save").disabled = false; toast("保存しました。担当者へ通知しました。");
     }catch(e){
       console.error("save error", e);
@@ -323,7 +327,7 @@
 
   // ---------- 図面アップロード ----------
   function fileToB64(f){ return new Promise(function(res, rej){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result).split(",")[1]); }; fr.onerror = rej; fr.readAsDataURL(f); }); }
-  $("uploadBtn").addEventListener("click", async function(){
+  async function uploadSelected(){
     var files = Array.prototype.slice.call($("file").files); if(!files.length || !editing) return;
     $("uploadBtn").disabled = true; $("formErr").textContent = "";
     for(var i=0;i<files.length;i++){
@@ -335,7 +339,8 @@
       }catch(e){ li.textContent = f.name + "（失敗：" + errText(e) + "）"; }
     }
     $("file").value = ""; $("uploadBtn").disabled = false; render();
-  });
+  }
+  $("uploadBtn").addEventListener("click", uploadSelected);
 
   boot();
 })();
