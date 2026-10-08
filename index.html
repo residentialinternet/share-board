@@ -274,7 +274,7 @@
       var wrap = document.createElement("div"); if(c.l==="物件名"||c.l==="住所") wrap.className = "full";
       var lb = document.createElement("label"); lb.className = "f"; lb.textContent = c.n + (c.l==="物件名" ? "（必須）" : ""); lb.htmlFor = "f_"+c.l;
       var inp;
-      if(c.t==="mark"){ inp = document.createElement("select"); ["", "○", "△", "×"].forEach(function(o){ var op=document.createElement("option"); op.value=o; op.textContent=o||"（未選択）"; inp.appendChild(op); }); }
+      if(c.t==="mark"){ inp = document.createElement("select"); ["", "○", "×"].forEach(function(o){ var op=document.createElement("option"); op.value=o; op.textContent=o||"（未選択）"; inp.appendChild(op); }); }
       else { inp = document.createElement("input"); inp.type = c.t==="date" ? "date" : c.t==="num" ? "number" : "text"; if(c.t==="num"){ inp.min=0; inp.max=9999; inp.step=1; } inp.maxLength = 200; }
       inp.id = "f_"+c.l; inp.dataset.label = c.l; inp.value = row ? (row.v[c.l]||"") : "";
       wrap.appendChild(lb); wrap.appendChild(inp); g.appendChild(wrap);
