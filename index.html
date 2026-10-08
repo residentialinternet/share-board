@@ -259,7 +259,7 @@
     });
     $("count").textContent = rows.length + "件";
     $("empty").hidden = rows.length > 0;
-    $("thead").parentNode.hidden = rows.length === 0 && !kw && data.rows.length === 0;
+    $("thead").parentNode.hidden = false;   // 物件が0件でも見出し(項目の設定状況)は表示する
   }
   $("q").addEventListener("input", render);
 
