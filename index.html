@@ -243,7 +243,7 @@
     } else { sb.hidden = true; }
     var ct = data.contact, cb = $("contact"); cb.textContent = "";
     if(ct && (ct.tel || ct.mail)){
-      var lab = document.createElement("span"); lab.textContent = "弊社担当："; cb.appendChild(lab);
+      var lab = document.createElement("span"); lab.textContent = "連絡先："; cb.appendChild(lab);
       if(ct.name){ var nb = document.createElement("b"); nb.textContent = ct.name; cb.appendChild(nb); }
       if(ct.tel){ var ta = document.createElement("a"); ta.textContent = "📱 " + ct.tel; if(/^[0-9+\-() ]+$/.test(ct.tel)) ta.href = "tel:" + ct.tel.replace(/[^0-9+]/g, ""); cb.appendChild(ta); }
       if(ct.mail){ var ma = document.createElement("a"); ma.textContent = "✉ " + ct.mail; if(/^[^\s@<>"]+@[^\s@<>"]+$/.test(ct.mail)) ma.href = "mailto:" + ct.mail; cb.appendChild(ma); }
