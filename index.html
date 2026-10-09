@@ -140,7 +140,7 @@
   <form id="form" autocomplete="off"><div class="grid" id="fields"></div>
     <div class="err" id="formErr" role="alert"></div>
     <div class="upl" id="upl" hidden>
-      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span><div class="muted" id="uplNote" style="margin-top:2px">ファイルを選んで「保存」を押すと、入力内容と一緒に送られます。ファイルだけ先に送りたいときは「アップロード」を押してください（入力内容は保存されません）。</div>
+      <b style="font-size:13px">図面を添付</b> <span class="muted">（PDF・画像・zip／1ファイル20MBまで）</span><div class="muted" id="uplNote" style="margin-top:2px">ファイルを選んで「保存」を押すと、入力内容と一緒に送られます。ファイルだけ先に送りたいときは「ファイルだけ送る」を押してください（入力内容は保存されません。送り終わると画面が閉じます）。</div>
       <div class="row" style="margin-top:6px"><input id="file" type="file" accept="application/pdf,image/png,image/jpeg,.zip" multiple style="max-width:300px"><button class="btn" id="uploadBtn" type="button" title="入力内容は保存せず、ファイルだけを送ります">ファイルだけ送る</button></div>
       <ul id="uploaded"></ul>
     </div>
@@ -355,19 +355,28 @@
   // ---------- 図面アップロード ----------
   function fileToB64(f){ return new Promise(function(res, rej){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result).split(",")[1]); }; fr.onerror = rej; fr.readAsDataURL(f); }); }
   async function uploadSelected(){
-    var files = Array.prototype.slice.call($("file").files); if(!files.length || !editing) return;
-    $("uploadBtn").disabled = true; $("formErr").textContent = "";
+    var files = Array.prototype.slice.call($("file").files); if(!files.length || !editing) return false;
+    $("uploadBtn").disabled = true; $("formErr").textContent = ""; var allOk = true;
     for(var i=0;i<files.length;i++){
       var f = files[i], li = document.createElement("li"); li.textContent = f.name + "（送信中…）"; $("uploaded").appendChild(li);
       try{
         if(f.size > 20*1024*1024) throw {code:"too_large"};
         await callApi({action:"upload", recordId:editing.id, fileName:f.name, mime:f.type || "application/octet-stream", dataBase64: await fileToB64(f)});
         li.textContent = f.name + "（完了）"; if(editing.v["図面共有"]!==undefined && !editing.v["図面共有"]) editing.v["図面共有"] = "済";
-      }catch(e){ li.textContent = f.name + "（失敗：" + errText(e) + "）"; }
+      }catch(e){ allOk = false; li.textContent = f.name + "（失敗：" + errText(e) + "）"; }
     }
     $("file").value = ""; $("uploadBtn").disabled = false; render();
+    return allOk;
   }
-  $("uploadBtn").addEventListener("click", uploadSelected);
+  // 「ファイルだけ送る」：入力欄は保存せず図面だけ送る。全部送れたら画面を閉じる（失敗があれば開いたまま）
+  $("uploadBtn").addEventListener("click", async function(){
+    if(!$("file").files.length) return;
+    var changed = false;
+    document.querySelectorAll("#fields [data-label]").forEach(function(el){ if(editing && String(el.value)!==String(editing.v[el.dataset.label]||"")) changed = true; });
+    if(changed && !confirm("入力内容は保存されません（図面だけ送ります）。よろしいですか？\n入力内容も保存する場合は「キャンセル」して、「保存」を押してください。")) return;
+    var ok = await uploadSelected();
+    if(ok){ $("dlg").close(); toast("図面を送りました。担当者へ通知しました。"); }
+  });
 
   boot();
 })();
