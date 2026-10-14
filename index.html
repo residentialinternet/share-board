@@ -69,7 +69,8 @@
   th.act{background-color:var(--surface)}
   th.act{z-index:3}
   th:nth-child(2),td:nth-child(2){position:sticky;left:calc(var(--actw,84px) - 1px);z-index:2;box-shadow:2px 0 0 var(--line)}
-  td.act,th.act{border-right:1px solid var(--line)}
+  td.act,th.act{border-right:0}
+  th:nth-child(2),td:nth-child(2){border-left:1px solid var(--line)}
   td:nth-child(2){background:var(--surface)}
   th:nth-child(2){z-index:3}
   tr.upd td.act{box-shadow:inset 4px 0 0 #e0a030}
