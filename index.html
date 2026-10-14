@@ -56,16 +56,20 @@
   .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink2);margin-left:auto}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
   .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-  table{border-collapse:collapse;width:100%;min-width:900px}
-  th,td{border:1px solid var(--line);padding:7px 10px;text-align:center;white-space:nowrap}
+  table{border-collapse:separate;border-spacing:0;width:100%;min-width:900px}
+  th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 10px;text-align:center;white-space:nowrap;background-clip:padding-box}
+  th:last-child,td:last-child{border-right:0}
+  tbody tr:last-child td{border-bottom:0}
   th{position:sticky;top:0;z-index:1;color:#222;font-weight:700;cursor:pointer;user-select:none}
   td.l{text-align:left}
   td.memo{text-align:left;white-space:normal;min-width:160px}
   tr.upd td:first-child{box-shadow:inset 4px 0 0 #e0a030}
   td.act{width:1%}
-  th.act,td.act{position:sticky;left:0;background:var(--surface);z-index:2}
+  th.act,td.act{position:sticky;left:0;background-color:var(--surface);z-index:2}
+  th.act{background-color:var(--surface)}
   th.act{z-index:3}
-  th:nth-child(2),td:nth-child(2){position:sticky;left:var(--actw,84px);z-index:2;box-shadow:2px 0 0 var(--line)}
+  th:nth-child(2),td:nth-child(2){position:sticky;left:calc(var(--actw,84px) - 1px);z-index:2;box-shadow:2px 0 0 var(--line)}
+  td.act,th.act{border-right:1px solid var(--line)}
   td:nth-child(2){background:var(--surface)}
   th:nth-child(2){z-index:3}
   tr.upd td.act{box-shadow:inset 4px 0 0 #e0a030}
@@ -300,7 +304,7 @@
     $("cntActive").textContent = data.rows.length - nDone; $("cntDone").textContent = nDone;
     document.querySelectorAll("#tabs button").forEach(function(bt){ bt.classList.toggle("on", bt.dataset.t === tab); });
     $("add").hidden = (tab === "done");
-    var ah = document.querySelector("th.act"); if(ah) document.documentElement.style.setProperty("--actw", ah.offsetWidth + "px");
+    var ah = document.querySelector("th.act"); if(ah) document.documentElement.style.setProperty("--actw", ah.getBoundingClientRect().width + "px");
     $("empty").hidden = rows.length > 0;
     $("thead").parentNode.hidden = false;   // 物件が0件でも見出し(項目の設定状況)は表示する
   }
