@@ -65,6 +65,15 @@
   td.act{width:1%}
   th.act,td.act{position:sticky;left:0;background:var(--surface);z-index:2}
   th.act{z-index:3}
+  th:nth-child(2),td:nth-child(2){position:sticky;left:var(--actw,84px);z-index:2;box-shadow:2px 0 0 var(--line)}
+  td:nth-child(2){background:var(--surface)}
+  th:nth-child(2){z-index:3}
+  tr.upd td.act{box-shadow:inset 4px 0 0 #e0a030}
+  .tabs{display:flex;gap:6px;margin:0 0 10px}
+  .tabs button{font:inherit;font-size:14px;padding:6px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink2);cursor:pointer}
+  .tabs button b{margin-left:6px;font-size:12px;font-weight:700}
+  .tabs button.on{background:#2f6fb0;border-color:#2f6fb0;color:#fff}
+  td.act .done{font-size:12px;color:var(--ink3)}
   tr.upd td.act{box-shadow:inset 4px 0 0 #e0a030}
   tr.upd td:first-child:not(.act){box-shadow:none}
   a.btn{display:inline-block;text-decoration:none;color:inherit}
@@ -122,6 +131,7 @@
       <div class="contact" id="contact" hidden></div>
       <button class="btn" id="logout" type="button" title="このブラウザに保存した情報を消します">ログアウト</button>
     </header>
+    <div class="tabs" id="tabs"><button type="button" data-t="active">進行中<b id="cntActive"></b></button><button type="button" data-t="done">完工済<b id="cntDone"></b></button></div>
     <div class="tools">
       <input id="q" type="search" placeholder="物件名などで絞り込み">
       <button class="btn primary" id="add" type="button">＋ 物件を追加</button>
@@ -260,8 +270,10 @@
     $("thead").textContent = ""; $("thead").appendChild(tr);
     render();
   }
+  var tab = "active";
+  document.querySelectorAll("#tabs button").forEach(function(bt){ bt.addEventListener("click", function(){ tab = bt.dataset.t; render(); }); });
   function render(){
-    var kw = $("q").value.trim().toLowerCase(), rows = data.rows.slice();
+    var kw = $("q").value.trim().toLowerCase(), rows = data.rows.filter(function(r){ return !!r.done === (tab==="done"); });
     if(kw) rows = rows.filter(function(r){ return Object.keys(r.v).some(function(k){ return String(r.v[k]).toLowerCase().indexOf(kw)>=0; }); });
     if(sortCol!=null){ var cl = data.columns[sortCol].l; rows.sort(function(a,b){ var x=a.v[cl], y=b.v[cl]; if(data.columns[sortCol].t==="num"){ x=Number(x)||0; y=Number(y)||0; } return (x<y?-1:x>y?1:0)*sortDir; }); }
     var tb = $("tbody"); tb.textContent = "";
@@ -269,8 +281,9 @@
       var tr = document.createElement("tr"); if(r.upd) tr.className = "upd";
       var ta = document.createElement("td"); ta.className = "act";
       var b = document.createElement("button"); b.className = "btn"; b.type="button";
-      if(r.lock){ b.textContent = "停止中"; b.disabled = true; b.title = "この物件は編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
-      ta.appendChild(b); tr.appendChild(ta);
+      if(r.done){ var dn = document.createElement("span"); dn.className = "done"; dn.textContent = "完工済"; ta.appendChild(dn); b = null; }
+      else if(r.lock){ b.textContent = "停止中"; b.disabled = true; b.title = "この物件は編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
+      if(b) ta.appendChild(b); tr.appendChild(ta);
       data.columns.forEach(function(c, i){
         var td = document.createElement("td"), v = r.v[c.l];
         td.dataset.l = c.n;
@@ -283,6 +296,11 @@
       tb.appendChild(tr);
     });
     $("count").textContent = rows.length + "件";
+    var nDone = data.rows.filter(function(r){ return !!r.done; }).length;
+    $("cntActive").textContent = data.rows.length - nDone; $("cntDone").textContent = nDone;
+    document.querySelectorAll("#tabs button").forEach(function(bt){ bt.classList.toggle("on", bt.dataset.t === tab); });
+    $("add").hidden = (tab === "done");
+    var ah = document.querySelector("th.act"); if(ah) document.documentElement.style.setProperty("--actw", ah.offsetWidth + "px");
     $("empty").hidden = rows.length > 0;
     $("thead").parentNode.hidden = false;   // 物件が0件でも見出し(項目の設定状況)は表示する
   }
