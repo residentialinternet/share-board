@@ -286,7 +286,7 @@
     if(sortCol!=null){ var cl = data.columns[sortCol].l; rows.sort(function(a,b){ var x=a.v[cl], y=b.v[cl]; if(data.columns[sortCol].t==="num"){ x=Number(x)||0; y=Number(y)||0; } return (x<y?-1:x>y?1:0)*sortDir; }); }
     var tb = $("tbody"); tb.textContent = "";
     rows.forEach(function(r){
-      var tr = document.createElement("tr"); if(r.upd) tr.className = "upd";
+      var tr = document.createElement("tr"); /* 「更新」表示は一旦なし(2026-10-16) */
       var ta = document.createElement("td"); ta.className = "act";
       var b = document.createElement("button"); b.className = "btn"; b.type="button";
       if(r.done){ var dn = document.createElement("span"); dn.className = "done"; dn.textContent = "完工済"; ta.appendChild(dn); b = null; }
@@ -296,7 +296,7 @@
       data.columns.forEach(function(c, i){
         var td = document.createElement("td"), v = r.v[c.l];
         td.dataset.l = c.n;
-        if(i===0){ td.className = "l"; td.textContent = fmtCell(c, v); if(r.upd){ var g=document.createElement("span"); g.className="tag"; g.textContent="更新"; td.appendChild(g);} }
+        if(i===0){ td.className = "l"; td.textContent = fmtCell(c, v);  }
         else if(c.t==="mark"){ td.textContent = v; td.className = v==="○"||v==="◎" ? "m-o" : v==="△" ? "m-t" : v==="×" ? "m-x" : ""; }
         else if(c.l==="メモ"){ td.className = "memo"; td.textContent = v; }
         else td.textContent = fmtCell(c, v);
