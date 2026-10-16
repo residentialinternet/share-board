@@ -245,6 +245,8 @@
     if(col.t==="num") return Number(v).toLocaleString("ja-JP");
     return String(v);
   }
+  // 機能のON/OFF(管理会社版など。data.features が無い従来の共有先はすべてON)。サーバー側(GAS)でも同じ設定で拒否される
+  function F(){ var f = data && data.features; return f ? { create: f.create !== false, upload: f.upload !== false, edit: f.edit !== false, box: f.box !== false } : { create: true, upload: true, edit: true, box: true }; }
   function show(){
     $("login").hidden=true; $("main").hidden=false;
     document.title = data.title + " | 案件進捗共有システム";
@@ -271,7 +273,8 @@
       tr.appendChild(th);
     });
     var ta = document.createElement("th"); ta.className = "act"; ta.textContent = ""; ta.style.cursor = "default"; tr.insertBefore(ta, tr.firstChild);
-    var bx = $("boxBtn"); if(data.box && /^https?:\/\//i.test(data.box)){ bx.href = data.box; bx.hidden = false; } else { bx.hidden = true; }
+    var bx = $("boxBtn"); if(F().box && data.box && /^https?:\/\//i.test(data.box)){ bx.href = data.box; bx.hidden = false; } else { bx.hidden = true; }
+    if(!F().create) $("empty").textContent = "表示できる物件がまだありません。";
     $("thead").textContent = ""; $("thead").appendChild(tr);
     render();
   }
@@ -287,6 +290,7 @@
       var ta = document.createElement("td"); ta.className = "act";
       var b = document.createElement("button"); b.className = "btn"; b.type="button";
       if(r.done){ var dn = document.createElement("span"); dn.className = "done"; dn.textContent = "完工済"; ta.appendChild(dn); b = null; }
+      else if(!F().edit){ b = null; }
       else if(r.lock){ b.textContent = "停止中"; b.disabled = true; b.title = "この物件は編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
       if(b) ta.appendChild(b); tr.appendChild(ta);
       data.columns.forEach(function(c, i){
@@ -304,7 +308,7 @@
     var nDone = data.rows.filter(function(r){ return !!r.done; }).length;
     $("cntActive").textContent = data.rows.length - nDone; $("cntDone").textContent = nDone;
     document.querySelectorAll("#tabs button").forEach(function(bt){ bt.classList.toggle("on", bt.dataset.t === tab); });
-    $("add").hidden = (tab === "done");
+    $("add").hidden = (tab === "done") || !F().create;
     var ah = document.querySelector("th.act"); if(ah) document.documentElement.style.setProperty("--actw", ah.getBoundingClientRect().width + "px");
     $("empty").hidden = rows.length > 0;
     $("thead").parentNode.hidden = false;   // 物件が0件でも見出し(項目の設定状況)は表示する
@@ -327,7 +331,7 @@
       inp.id = "f_"+c.l; inp.dataset.label = c.l; inp.value = row ? (row.v[c.l]||"") : "";
       wrap.appendChild(lb); wrap.appendChild(inp); g.appendChild(wrap);
     });
-    $("upl").hidden = false; $("uploaded").textContent = ""; $("file").value = ""; $("uploadBtn").hidden = !row; $("uplNote").hidden = false;
+    $("upl").hidden = !F().upload; $("uploaded").textContent = ""; $("file").value = ""; $("uploadBtn").hidden = !row || !F().upload; $("uplNote").hidden = !F().upload;
     $("save").textContent = "保存"; $("save").disabled = false;
     $("dlg").showModal();
   }
@@ -376,7 +380,7 @@
       if(editing){ Object.keys(fields).forEach(function(l){ editing.v[l] = fields[l]; }); }
       else { var v = {}; data.columns.forEach(function(c){ v[c.l] = fields[c.l] || ""; }); editing = {id:res.recordId, st:"先方入力・未対応", upd:false, lock:false, v:v}; data.rows.push(editing); }
       render();
-      $("upl").hidden = false; $("uploadBtn").hidden = false; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = "続けて図面を添付できます。不要なら「閉じる」を押してください。";
+      $("upl").hidden = !F().upload; $("uploadBtn").hidden = !F().upload; $("dlgTitle").textContent = "保存しました"; $("dlgSub").textContent = F().upload ? "続けて図面を添付できます。不要なら「閉じる」を押してください。" : "保存しました。「閉じる」を押してください。";
       if($("file").files.length){ $("save").textContent = "図面を送信中…"; await uploadSelected(); }
       $("save").textContent = "保存"; $("save").disabled = false; toast("保存しました。担当者へ通知しました。");
     }catch(e){
