@@ -291,7 +291,7 @@
       var tr = document.createElement("tr"); /* 「更新」表示は一旦なし(2026-10-16) */
       var ta = document.createElement("td"); ta.className = "act";
       var b = document.createElement("button"); b.className = "btn"; b.type="button";
-      if(rowTab(r)!=="prog"){ var dn = document.createElement("span"); dn.className = "done"; dn.textContent = rowTab(r)==="lost" ? "失注" : "完工済"; ta.appendChild(dn); b = null; }
+      if(rowTab(r)!=="prog"){ b = null; }   /* 完工済・失注は閲覧のみ(行の左の表示は出さない・2026-10-20) */
       else if(!F().edit){ b = null; }
       else if(r.lock){ b.textContent = "停止中"; b.disabled = true; b.title = "この物件は編集できません"; } else { b.textContent = "✎ 編集"; b.addEventListener("click", function(){ openForm(r); }); }
       if(b) ta.appendChild(b); tr.appendChild(ta);
